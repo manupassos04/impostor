@@ -306,14 +306,16 @@ export default function RoomPage() {
   const isMyHintTurn = currentHintPlayer?.id === myPlayerId
 
   const myVote = me?.voted_for ?? null
+  // rodada sem votação: todos votaram em si mesmos (sentinela)
+  const noVotingRound = players.length > 0 && players.every(p => p.voted_for === p.id)
   const voteCounts = players.reduce((acc, p) => {
-    if (p.voted_for) acc[p.voted_for] = (acc[p.voted_for] || 0) + 1
+    if (p.voted_for && !noVotingRound) acc[p.voted_for] = (acc[p.voted_for] || 0) + 1
     return acc
   }, {} as Record<string, number>)
   const maxVotes = players.length > 0 ? Math.max(0, ...Object.values(voteCounts)) : 0
   const accusedIds = Object.entries(voteCounts).filter(([, c]) => c === maxVotes && maxVotes > 0).map(([id]) => id)
   const impostor = players.find(p => p.is_impostor)
-  const citizensWin = accusedIds.length === 1 && accusedIds[0] === impostor?.id
+  const citizensWin = !noVotingRound && accusedIds.length === 1 && accusedIds[0] === impostor?.id
 
   // ──────────── ACTIONS ────────────
 
@@ -412,8 +414,9 @@ export default function RoomPage() {
   async function handleSameWordRound() {
     if (!room) return
     const shuffled = [...players].sort(() => Math.random() - 0.5)
+    // voted_for = próprio ID = sentinela "sem votação" → handleAdvanceTurn pula direto pro resultado
     await Promise.all(shuffled.map((p, i) =>
-      supabase.from('impostor_players').update({ seat_order: i }).eq('id', p.id)
+      supabase.from('impostor_players').update({ seat_order: i, voted_for: p.id }).eq('id', p.id)
     ))
     await supabase.from('impostor_rooms').update({
       status: 'hints', current_hint_seat: 0,
@@ -856,18 +859,26 @@ export default function RoomPage() {
         {/* ═══════════ RESULT ═══════════ */}
         {room?.status === 'result' && (
           <div className="mt-4">
-            {/* Winner */}
-            <div className={`rounded-3xl p-8 text-center mb-5 ${
-              citizensWin
-                ? 'bg-gradient-to-br from-emerald-950 to-emerald-900/50 border-2 border-emerald-500/50 glow-green'
-                : 'bg-gradient-to-br from-red-950 to-red-900/50 border-2 border-red-500/50 glow-red'
-            }`}>
-              <div className="text-7xl mb-3 float-anim inline-block">{citizensWin ? '🏆' : '🕵️'}</div>
-              <h2 className="text-white text-4xl font-black mb-2">{citizensWin ? 'Cidadãos vencem!' : 'Impostor vence!'}</h2>
-              <p className="text-white/60 text-base">
-                {citizensWin ? 'O impostor foi descuberto!' : accusedIds.length > 1 ? 'Empate! O impostor escapou!' : 'O grupo votou na pessoa errada!'}
-              </p>
-            </div>
+            {/* Winner — só mostra quando houve votação */}
+            {!noVotingRound ? (
+              <div className={`rounded-3xl p-8 text-center mb-5 ${
+                citizensWin
+                  ? 'bg-gradient-to-br from-emerald-950 to-emerald-900/50 border-2 border-emerald-500/50 glow-green'
+                  : 'bg-gradient-to-br from-red-950 to-red-900/50 border-2 border-red-500/50 glow-red'
+              }`}>
+                <div className="text-7xl mb-3 float-anim inline-block">{citizensWin ? '🏆' : '🕵️'}</div>
+                <h2 className="text-white text-4xl font-black mb-2">{citizensWin ? 'Cidadãos vencem!' : 'Impostor vence!'}</h2>
+                <p className="text-white/60 text-base">
+                  {citizensWin ? 'O impostor foi descoberto!' : accusedIds.length > 1 ? 'Empate! O impostor escapou!' : 'O grupo votou na pessoa errada!'}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-center mb-5">
+                <div className="text-5xl mb-2">🔁</div>
+                <h2 className="text-white text-2xl font-black mb-1">Rodada de dicas</h2>
+                <p className="text-white/40 text-sm">Sem votação — só dicas!</p>
+              </div>
+            )}
 
             {/* Word reveal */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-4 text-center">
@@ -892,31 +903,33 @@ export default function RoomPage() {
               </div>
             )}
 
-            {/* Vote tally */}
-            <div className="bg-white/4 border border-white/8 rounded-2xl p-4 mb-6">
-              <p className="text-white/30 text-xs uppercase tracking-widest mb-3">Votação</p>
-              <div className="space-y-2">
-                {[...players].sort((a, b) => (voteCounts[b.id] || 0) - (voteCounts[a.id] || 0)).map((player) => {
-                  const colorIndex = players.findIndex(p => p.id === player.id)
-                  const votes = voteCounts[player.id] || 0
-                  return (
-                    <div key={player.id} className={`flex items-center gap-3 rounded-xl p-3 ${player.is_impostor ? 'bg-red-500/10 border border-red-500/20' : 'bg-transparent'}`}>
-                      <Avatar name={player.name} colorIndex={colorIndex} size="sm" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-white font-semibold text-sm">{player.name}</span>
-                          {player.is_impostor && <span className="text-xs bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-bold">🕵️ IMPOSTOR</span>}
+            {/* Vote tally — só mostra quando houve votação real */}
+            {!noVotingRound && (
+              <div className="bg-white/4 border border-white/8 rounded-2xl p-4 mb-6">
+                <p className="text-white/30 text-xs uppercase tracking-widest mb-3">Votação</p>
+                <div className="space-y-2">
+                  {[...players].sort((a, b) => (voteCounts[b.id] || 0) - (voteCounts[a.id] || 0)).map((player) => {
+                    const colorIndex = players.findIndex(p => p.id === player.id)
+                    const votes = voteCounts[player.id] || 0
+                    return (
+                      <div key={player.id} className={`flex items-center gap-3 rounded-xl p-3 ${player.is_impostor ? 'bg-red-500/10 border border-red-500/20' : 'bg-transparent'}`}>
+                        <Avatar name={player.name} colorIndex={colorIndex} size="sm" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-white font-semibold text-sm">{player.name}</span>
+                            {player.is_impostor && <span className="text-xs bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-bold">🕵️ IMPOSTOR</span>}
+                          </div>
+                          <div className="flex gap-0.5 mt-0.5">
+                            {Array.from({ length: votes }).map((_, i) => <span key={i} className="text-xs">🗳️</span>)}
+                          </div>
                         </div>
-                        <div className="flex gap-0.5 mt-0.5">
-                          {Array.from({ length: votes }).map((_, i) => <span key={i} className="text-xs">🗳️</span>)}
-                        </div>
+                        <span className="text-white/30 text-sm font-mono">{votes}v</span>
                       </div>
-                      <span className="text-white/30 text-sm font-mono">{votes}v</span>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {isHost ? (
               <div className="space-y-3">
