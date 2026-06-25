@@ -151,10 +151,21 @@ export default function RoomPage() {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'impostor_players' },
           () => fetchPlayers(roomData.id))
         .subscribe()
+
+      const poll = setInterval(async () => {
+        const { data: roomSnap } = await supabase
+          .from('impostor_rooms').select('*').eq('code', code).single()
+        if (roomSnap) setRoom(roomSnap)
+        await fetchPlayers(roomData.id)
+      }, 3000)
+
+      return () => {
+        supabase.removeChannel(channel)
+        clearInterval(poll)
+      }
     }
 
     init()
-    return () => { if (channel) supabase.removeChannel(channel) }
   }, [code, fetchPlayers])
 
   // Auto-advance: role_reveal → hints (when all ready)
