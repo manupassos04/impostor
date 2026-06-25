@@ -111,6 +111,7 @@ export default function RoomPage() {
 
   // category picker
   const [showCategoryPicker, setShowCategoryPicker] = useState(false)
+  const [starting, setStarting] = useState(false)
 
   // hints
   const [hintInput, setHintInput] = useState('')
@@ -241,14 +242,21 @@ export default function RoomPage() {
   }
 
   async function handleStartGame(categoryName?: string) {
-    if (!room || players.length < 3) return
+    if (!room || starting) return
     setShowCategoryPicker(false)
+    setStarting(true)
+
+    const { data: freshPlayers } = await supabase
+      .from('impostor_players').select('*').eq('room_id', room.id)
+
+    const list = freshPlayers ?? players
+    if (list.length < 3) { setStarting(false); return }
 
     const cat = categoryName ?? Object.keys(WORD_CATEGORIES)[Math.floor(Math.random() * Object.keys(WORD_CATEGORIES).length)]
     const words = WORD_CATEGORIES[cat]
     const secret_word = words[Math.floor(Math.random() * words.length)]
 
-    const shuffled = [...players].sort(() => Math.random() - 0.5)
+    const shuffled = [...list].sort(() => Math.random() - 0.5)
     const impostorIndex = Math.floor(Math.random() * shuffled.length)
 
     await Promise.all(shuffled.map((p, i) =>
@@ -267,6 +275,8 @@ export default function RoomPage() {
       category: cat,
       current_hint_seat: 0,
     }).eq('id', room.id)
+
+    setStarting(false)
   }
 
   async function handleMarkReady() {
@@ -513,11 +523,11 @@ export default function RoomPage() {
 
             {isHost && (
               <button
-                onClick={() => players.length >= 3 && setShowCategoryPicker(true)}
-                disabled={players.length < 3}
+                onClick={() => !starting && players.length >= 3 && setShowCategoryPicker(true)}
+                disabled={players.length < 3 || starting}
                 className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-5 rounded-2xl text-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-red-900/50 glow-red"
               >
-                {players.length < 3 ? `⏳ Esperando jogadores... (${players.length}/3)` : `🚀 Iniciar Jogo (${players.length} jogadores)`}
+                {starting ? '⏳ Iniciando jogo...' : players.length < 3 ? `⏳ Esperando jogadores... (${players.length}/3)` : `🚀 Iniciar Jogo (${players.length} jogadores)`}
               </button>
             )}
 
