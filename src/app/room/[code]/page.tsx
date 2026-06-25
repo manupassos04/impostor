@@ -406,6 +406,24 @@ export default function RoomPage() {
     }).eq('id', room.id)
   }
 
+  async function handleSameWordRound() {
+    if (!room) return
+    const shuffled = [...players].sort(() => Math.random() - 0.5)
+    await Promise.all(shuffled.map((p, i) =>
+      supabase.from('impostor_players').update({
+        seat_order: i, voted_for: null,
+      }).eq('id', p.id)
+    ))
+    await supabase.from('impostor_rooms').update({
+      status: 'hints', current_hint_seat: 0,
+    }).eq('id', room.id)
+  }
+
+  async function handleSkipVoting() {
+    if (!room) return
+    await supabase.from('impostor_rooms').update({ status: 'result' }).eq('id', room.id)
+  }
+
   async function copyLink() {
     await navigator.clipboard.writeText(window.location.href)
     setCopied(true)
@@ -815,7 +833,7 @@ export default function RoomPage() {
                 <div className="text-5xl mb-3">✅</div>
                 <p className="text-white text-lg font-bold mb-1">Voto registrado!</p>
                 <p className="text-white/40 text-sm mb-6">Você votou em <strong className="text-white/70">{players.find(p => p.id === myVote)?.name}</strong></p>
-                <div className="flex flex-wrap justify-center gap-2">
+                <div className="flex flex-wrap justify-center gap-2 mb-6">
                   {players.map((p) => (
                     <div key={p.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm ${p.voted_for !== null ? 'bg-green-500/15 border-green-500/30 text-green-300' : 'bg-white/5 border-white/8 text-white/30'}`}>
                       <span>{p.voted_for !== null ? '✓' : '⏳'}</span>
@@ -823,6 +841,12 @@ export default function RoomPage() {
                     </div>
                   ))}
                 </div>
+                {isHost && (
+                  <button onClick={handleSkipVoting}
+                    className="bg-white/8 hover:bg-white/15 text-white/50 hover:text-white font-semibold px-6 py-3 rounded-2xl text-sm border border-white/10 transition-all active:scale-95">
+                    ⏭️ Pular votação → Ver resultado
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -894,10 +918,16 @@ export default function RoomPage() {
             </div>
 
             {isHost ? (
-              <button onClick={handleNewGame}
-                className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-5 rounded-2xl text-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-red-900/40 glow-red">
-                🔄 Jogar Novamente
-              </button>
+              <div className="space-y-3">
+                <button onClick={handleSameWordRound}
+                  className="w-full bg-white/8 hover:bg-white/15 border border-white/15 text-white font-black py-4 rounded-2xl text-lg transition-all transform hover:scale-[1.02] active:scale-95">
+                  🔁 Mesma palavra, nova rodada
+                </button>
+                <button onClick={handleNewGame}
+                  className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-5 rounded-2xl text-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-red-900/40 glow-red">
+                  🔄 Nova palavra
+                </button>
+              </div>
             ) : (
               <p className="text-center text-white/30 text-sm">Aguardando o anfitrião iniciar uma nova rodada...</p>
             )}
