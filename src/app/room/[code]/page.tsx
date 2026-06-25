@@ -125,7 +125,7 @@ export default function RoomPage() {
       .from('impostor_players')
       .select('*')
       .eq('room_id', roomId)
-      .order('seat_order', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: true })
     if (data) setPlayers(data)
   }, [])
 
@@ -146,9 +146,9 @@ export default function RoomPage() {
       setLoading(false)
 
       channel = supabase.channel(`impostor:${code}`)
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'impostor_rooms', filter: `code=eq.${code}` },
-          (p) => setRoom(p.new as Room))
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'impostor_players', filter: `room_id=eq.${roomData.id}` },
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'impostor_rooms', filter: `code=eq.${code}` },
+          (p) => { if (p.new && Object.keys(p.new).length) setRoom(p.new as Room) })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'impostor_players' },
           () => fetchPlayers(roomData.id))
         .subscribe()
     }
