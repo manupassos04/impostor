@@ -331,7 +331,6 @@ export default function RoomPage() {
 
   async function handleStartGame(categoryName?: string) {
     if (!room || starting) return
-    setShowCategoryPicker(false)
     setStarting(true)
 
     const { data: freshPlayers } = await supabase
@@ -502,14 +501,14 @@ export default function RoomPage() {
             <p className="text-white/40 text-sm text-center mb-5">Ou deixa sortear automaticamente</p>
             <div className="grid grid-cols-2 gap-2 mb-4">
               {Object.keys(WORD_CATEGORIES).map(cat => (
-                <button key={cat} onClick={() => handleStartGame(cat)}
+                <button key={cat} onClick={() => { setShowCategoryPicker(false); handleStartGame(cat) }}
                   className="flex items-center gap-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/40 text-white font-semibold py-3 px-4 rounded-2xl transition-all active:scale-95 text-sm">
                   <span>{CATEGORY_ICONS[cat]}</span>
                   <span>{cat}</span>
                 </button>
               ))}
             </div>
-            <button onClick={() => handleStartGame()}
+            <button onClick={() => { setShowCategoryPicker(false); handleStartGame() }}
               className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 rounded-2xl transition-all active:scale-95">
               🎲 Sortear Categoria
             </button>
@@ -710,17 +709,24 @@ export default function RoomPage() {
 
             {/* My word reminder */}
             {me && (
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-5 flex items-center justify-between">
-                <div>
-                  <p className="text-white/30 text-xs uppercase tracking-widest">Sua palavra</p>
-                  {me.is_impostor ? (
-                    <p className="text-yellow-300 font-black text-lg">{room.secret_word ? getImpostorHint(room.secret_word) : '???'} <span className="text-white/30 text-sm font-normal">(pista)</span></p>
-                  ) : (
-                    <p className="text-white font-black text-lg">{room.secret_word}</p>
-                  )}
+              me.is_impostor ? (
+                <div className="bg-red-500/10 border-2 border-red-500/30 rounded-2xl p-4 mb-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-red-400 text-lg">🕵️</span>
+                    <p className="text-red-300 text-xs uppercase tracking-widest font-bold">Você é o IMPOSTOR</p>
+                  </div>
+                  <p className="text-white/40 text-xs mb-1">Sua palavra de pista (blefe com base nisso):</p>
+                  <p className="text-yellow-300 font-black text-2xl">{room.secret_word ? getImpostorHint(room.secret_word) : '???'}</p>
                 </div>
-                {me.is_impostor && <span className="text-red-400 text-2xl">🕵️</span>}
-              </div>
+              ) : (
+                <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-2xl p-4 mb-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-white/30 text-xs uppercase tracking-widest">Palavra secreta</p>
+                    <p className="text-white font-black text-2xl">{room.secret_word}</p>
+                  </div>
+                  <span className="text-emerald-400 text-2xl">👤</span>
+                </div>
+              )
             )}
 
             {/* Advance buttons */}
