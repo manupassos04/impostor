@@ -27,115 +27,14 @@ interface Player {
   is_ready: boolean
 }
 
-type WordEntry = { word: string; hint: string }
-
-const WORD_CATEGORIES: Record<string, WordEntry[]> = {
-  'Geral': [
-    { word: 'Natal', hint: 'Decoração' },
-    { word: 'Casamento', hint: 'Compromisso' },
-    { word: 'Greve', hint: 'Paralisação' },
-    { word: 'Eleição', hint: 'Candidato' },
-    { word: 'Férias', hint: 'Julho' },
-    { word: 'Formatura', hint: 'Conquista' },
-    { word: 'Festival', hint: 'Multidão' },
-    { word: 'Viagem', hint: 'Partida' },
-    { word: 'Treino', hint: 'Repetição' },
-    { word: 'Cirurgia', hint: 'Anestesia' },
-    { word: 'Mergulho', hint: 'Cilindro' },
-    { word: 'Acampamento', hint: 'Floresta' },
-  ],
-  'Comida': [
-    { word: 'Pizza', hint: 'Sabor' },
-    { word: 'Sushi', hint: 'Fresco' },
-    { word: 'Sorvete', hint: 'Derrete' },
-    { word: 'Churrasco', hint: 'Fogo' },
-    { word: 'Hambúrguer', hint: 'Montado' },
-    { word: 'Lasanha', hint: 'Forno' },
-    { word: 'Tapioca', hint: 'Nordeste' },
-    { word: 'Coxinha', hint: 'Frito' },
-    { word: 'Brigadeiro', hint: 'Festa' },
-    { word: 'Pastel', hint: 'Feira' },
-    { word: 'Frango', hint: 'Galinheiro' },
-    { word: 'Pão de Queijo', hint: 'Mineiro' },
-  ],
-  'Esportes': [
-    { word: 'Futebol', hint: 'Grama' },
-    { word: 'Tênis', hint: 'Saque' },
-    { word: 'Natação', hint: 'Braçada' },
-    { word: 'Vôlei', hint: 'Saque' },
-    { word: 'Basquete', hint: 'Tabela' },
-    { word: 'Boxe', hint: 'Luva' },
-    { word: 'Surfe', hint: 'Sal' },
-    { word: 'Golfe', hint: 'Buraco' },
-    { word: 'Ciclismo', hint: 'Etapa' },
-    { word: 'Skate', hint: 'Manobra' },
-    { word: 'Judô', hint: 'Kimono' },
-    { word: 'Handebol', hint: 'Quadra' },
-  ],
-  'Lugares': [
-    { word: 'Praia', hint: 'Vento' },
-    { word: 'Hospital', hint: 'Plantão' },
-    { word: 'Aeroporto', hint: 'Terminal' },
-    { word: 'Museu', hint: 'Século' },
-    { word: 'Shopping', hint: 'Estacionamento' },
-    { word: 'Igreja', hint: 'Sino' },
-    { word: 'Escola', hint: 'Recreio' },
-    { word: 'Fazenda', hint: 'Gado' },
-    { word: 'Cassino', hint: 'Cartas' },
-    { word: 'Circo', hint: 'Palhaço' },
-    { word: 'Biblioteca', hint: 'Silêncio' },
-    { word: 'Restaurante', hint: 'Cardápio' },
-  ],
-  'Animais': [
-    { word: 'Cachorro', hint: 'Patinha' },
-    { word: 'Golfinho', hint: 'Inteligente' },
-    { word: 'Cobra', hint: 'Veneno' },
-    { word: 'Elefante', hint: 'Memória' },
-    { word: 'Borboleta', hint: 'Metamorfose' },
-    { word: 'Tubarão', hint: 'Predador' },
-    { word: 'Pinguim', hint: 'Geleira' },
-    { word: 'Cavalo', hint: 'Crina' },
-    { word: 'Coruja', hint: 'Silenciosa' },
-    { word: 'Leão', hint: 'Savana' },
-    { word: 'Polvo', hint: 'Tinta' },
-    { word: 'Flamingo', hint: 'Equilíbrio' },
-  ],
-  'Profissões': [
-    { word: 'Médico', hint: 'Plantão' },
-    { word: 'Professor', hint: 'Período' },
-    { word: 'Astronauta', hint: 'Gravidade' },
-    { word: 'Detetive', hint: 'Suspeito' },
-    { word: 'Chef', hint: 'Estrela' },
-    { word: 'Bombeiro', hint: 'Mangueira' },
-    { word: 'Piloto', hint: 'Altitude' },
-    { word: 'Veterinário', hint: 'Internação' },
-    { word: 'Músico', hint: 'Palco' },
-    { word: 'Arquiteto', hint: 'Concreto' },
-    { word: 'Policial', hint: 'Ocorrência' },
-    { word: 'Dentista', hint: 'Canal' },
-  ],
-  'Objetos': [
-    { word: 'Guarda-chuva', hint: 'Dobra' },
-    { word: 'Telescópio', hint: 'Galáxia' },
-    { word: 'Violão', hint: 'Acorde' },
-    { word: 'Geladeira', hint: 'Compressor' },
-    { word: 'Bússola', hint: 'Orientação' },
-    { word: 'Lanterna', hint: 'Feixe' },
-    { word: 'Dicionário', hint: 'Página' },
-    { word: 'Cofre', hint: 'Combinação' },
-    { word: 'Relógio', hint: 'Segundos' },
-    { word: 'Espelho', hint: 'Moldura' },
-    { word: 'Mochila', hint: 'Costas' },
-    { word: 'Microscópio', hint: 'Célula' },
-  ],
-}
-
-function getImpostorHint(word: string): string {
-  for (const entries of Object.values(WORD_CATEGORIES)) {
-    const found = entries.find(e => e.word === word)
-    if (found) return found.hint
-  }
-  return '???'
+const WORD_CATEGORIES: Record<string, string[]> = {
+  'Geral': ['Natal', 'Casamento', 'Greve', 'Eleição', 'Férias', 'Formatura', 'Festival', 'Viagem', 'Treino', 'Cirurgia', 'Mergulho', 'Acampamento'],
+  'Comida': ['Pizza', 'Sushi', 'Sorvete', 'Churrasco', 'Hambúrguer', 'Lasanha', 'Tapioca', 'Coxinha', 'Brigadeiro', 'Pastel', 'Frango', 'Pão de Queijo'],
+  'Esportes': ['Futebol', 'Tênis', 'Natação', 'Vôlei', 'Basquete', 'Boxe', 'Surfe', 'Golfe', 'Ciclismo', 'Skate', 'Judô', 'Handebol'],
+  'Lugares': ['Praia', 'Hospital', 'Aeroporto', 'Museu', 'Shopping', 'Igreja', 'Escola', 'Fazenda', 'Cassino', 'Circo', 'Biblioteca', 'Restaurante'],
+  'Animais': ['Cachorro', 'Golfinho', 'Cobra', 'Elefante', 'Borboleta', 'Tubarão', 'Pinguim', 'Cavalo', 'Coruja', 'Leão', 'Polvo', 'Flamingo'],
+  'Profissões': ['Médico', 'Professor', 'Astronauta', 'Detetive', 'Chef', 'Bombeiro', 'Piloto', 'Veterinário', 'Músico', 'Arquiteto', 'Policial', 'Dentista'],
+  'Objetos': ['Guarda-chuva', 'Telescópio', 'Violão', 'Geladeira', 'Bússola', 'Lanterna', 'Dicionário', 'Cofre', 'Relógio', 'Espelho', 'Mochila', 'Microscópio'],
 }
 
 const PLAYER_COLORS = [
@@ -343,7 +242,7 @@ export default function RoomPage() {
 
     const cat = categoryName ?? Object.keys(WORD_CATEGORIES)[Math.floor(Math.random() * Object.keys(WORD_CATEGORIES).length)]
     const entries = WORD_CATEGORIES[cat]
-    const entry = entries[Math.floor(Math.random() * entries.length)]
+    const word = entries[Math.floor(Math.random() * entries.length)]
 
     const shuffled = [...list].sort(() => Math.random() - 0.5)
     const impostorIndex = Math.floor(Math.random() * shuffled.length)
@@ -360,7 +259,7 @@ export default function RoomPage() {
 
     await supabase.from('impostor_rooms').update({
       status: 'role_reveal',
-      secret_word: entry.word,
+      secret_word: word,
       category: cat,
       current_hint_seat: 0,
     }).eq('id', room.id)
@@ -642,11 +541,7 @@ export default function RoomPage() {
                     <div className="text-6xl mb-3">🕵️</div>
                     <p className="text-red-400 text-xs uppercase tracking-widest font-bold mb-2">Você é o...</p>
                     <p className="text-white text-5xl font-black mb-5">IMPOSTOR</p>
-                    <div className="bg-black/30 rounded-2xl p-4 mb-2">
-                      <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Sua palavra de pista</p>
-                      <p className="text-yellow-300 text-3xl font-black">{room.secret_word ? getImpostorHint(room.secret_word) : '???'}</p>
-                      <p className="text-white/30 text-xs mt-1">Use essa pista para blefar sem ser descoberto</p>
-                    </div>
+                    <p className="text-white/50 text-sm">Você não sabe a palavra. Tente blefar!</p>
                   </div>
                 ) : (
                   <div className="bg-gradient-to-br from-emerald-950 to-emerald-900/60 border-2 border-emerald-500/50 rounded-3xl p-8 text-center glow-green pop-in">
@@ -733,12 +628,10 @@ export default function RoomPage() {
             {me && (
               me.is_impostor ? (
                 <div className="bg-red-500/10 border-2 border-red-500/30 rounded-2xl p-4 mb-5">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2">
                     <span className="text-red-400 text-lg">🕵️</span>
-                    <p className="text-red-300 text-xs uppercase tracking-widest font-bold">Você é o IMPOSTOR</p>
+                    <p className="text-red-300 text-xs uppercase tracking-widest font-bold">Você é o IMPOSTOR — blefe!</p>
                   </div>
-                  <p className="text-white/40 text-xs mb-1">Sua palavra de pista (blefe com base nisso):</p>
-                  <p className="text-yellow-300 font-black text-2xl">{room.secret_word ? getImpostorHint(room.secret_word) : '???'}</p>
                 </div>
               ) : (
                 <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-2xl p-4 mb-5 flex items-center justify-between">
@@ -885,10 +778,6 @@ export default function RoomPage() {
               <p className="text-white/30 text-xs uppercase tracking-widest mb-1">A palavra secreta era</p>
               <p className="text-white text-4xl font-black">{room.secret_word}</p>
               <p className="text-white/20 text-xs mt-1">{CATEGORY_ICONS[room.category ?? '']} {room.category}</p>
-              <div className="mt-3 pt-3 border-t border-white/8 flex items-center justify-center gap-3 text-sm">
-                <span className="text-white/30">Pista do impostor:</span>
-                <span className="text-yellow-300 font-bold">{room.secret_word ? getImpostorHint(room.secret_word) : '???'}</span>
-              </div>
             </div>
 
             {/* Impostor reveal */}
